@@ -32,16 +32,16 @@ const initializeDbAndServer = async () => {
 initializeDbAndServer();
 
 const validPassword = (password) => {
-  return password.length > 4;
+  return password.length > 5;
 };
 
-app.post("/register", async (request, response) => {
+app.post("/register/", async (request, response) => {
   const { username, name, password, gender, location } = request.body;
   const hashedPassword = await bcrypt.hash(password, 10);
   const selectQuery = `SELECT * FROM user WHERE username='${username}';`;
-  const databaseUer = await database.get(selectQuery);
+  const databaseUser = await database.get(selectQuery);
 
-  if (databasePath === undefined) {
+  if (databaseUser === undefined) {
     const createUserQuery = `
         INSERT INTO 
         user (username,name,password,gender,location)
@@ -51,10 +51,10 @@ app.post("/register", async (request, response) => {
             '${name}',
             '${hashedPassword}',
             '${gender}',
-            '${location}',
+            '${location}'
         );
         `;
-    if (validPassword(password)) {
+    if (password.length > 5) {
       await database.run(createUserQuery);
       response.send("User created successfully");
     } else {
@@ -67,7 +67,7 @@ app.post("/register", async (request, response) => {
   }
 });
 
-app.post("login/", async (request, response) => {
+app.post("/login", async (request, response) => {
   const { username, password } = request.body;
   const selectUserQuery = `SELECT * FROM user WHERE username='${username}';`;
   const databaseUser = await database.get(selectUserQuery);
@@ -81,7 +81,7 @@ app.post("login/", async (request, response) => {
       databaseUser.password
     );
     if (isPasswordMatched === true) {
-      response.send("Login Success");
+      response.send("Login Success!");
     } else {
       response.status(400);
       response.send("Invalid password");
@@ -91,18 +91,19 @@ app.post("login/", async (request, response) => {
 
 app.put("/change-password", async (request, response) => {
   const { username, oldPassword, newPassword } = request.body;
-  const selectUserQuery = `SELECT * FROM username='${username}'; `;
+  const selectUserQuery = `SELECT * FROM user WHERE username='${username}'; `;
   const databaseUser = await database.get(selectUserQuery);
-  if (databasePath === undefined) {
+  if (databaseUser === undefined) {
     response.status(400);
-    response.send("Invalid user");
+    response.send("User not registered");
   } else {
     const isPasswordMatched = await bcrypt.compare(
       oldPassword,
       databaseUser.password
     );
     if (isPasswordMatched === true) {
-      if (validPassword(newPassword)) {
+      const lenNewPassword = newPassword.length;
+      if (lenNewPassword > 5) {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const updatePasswordQuery = `
                 UPDATE 
@@ -112,7 +113,7 @@ app.put("/change-password", async (request, response) => {
                 WHERE 
                 username='${username}';
                 `;
-        const user = await database.run(updatePasswordQuery);
+        await database.run(updatePasswordQuery);
 
         response.send("Password updated");
       } else {

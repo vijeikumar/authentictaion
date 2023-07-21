@@ -7,7 +7,7 @@ Content-Type: application/json
   "name": "Adam Richard",
   "password": "richard_567",
   "gender": "male",
-  "location": "Det",
+  "location": "Detroit"
 }
 ###
 
